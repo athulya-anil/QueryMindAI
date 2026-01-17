@@ -1,7 +1,9 @@
 {
-  "name": "mcp-client",
+  "name": "querymind-ai-client",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
+  "description": "QueryMind AI - Natural language interface for database queries",
+  "author": "Athulya Anil",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,8 +13,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
+    "groq-sdk": "^0.37.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

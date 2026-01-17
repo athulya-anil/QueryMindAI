@@ -14,7 +14,7 @@ app.get("/sse", async (req, res) => {
 
     const server = new Server(
         {
-            name: "example-server",
+            name: "sql-server",
             version: "1.0.0",
         },
         {
@@ -112,14 +112,34 @@ app.get("/sse", async (req, res) => {
         }
 
         if (request.params.name === "list_tables") {
-            const db = getDb();
-            const [rows] = await db.query("SHOW TABLES");
-            return {
-                content: [{ type: "text", text: JSON.stringify(rows) }],
-            };
+            console.log("Executing list_tables...");
+            try {
+                const db = getDb();
+                const [rows] = await db.query("SHOW TABLES");
+                const allRows = (rows as any[]).map(row => ({ ...row }));
+
+                // Filter out system tables in JS (safer than dynamic SQL column names)
+                const plainRows = allRows.filter(row => {
+                    const values = Object.values(row);
+                    const tableName = values[0] as string;
+                    return !['information_schema', 'mysql', 'performance_schema', 'sys'].some(prefix => tableName.startsWith(prefix));
+                });
+
+                console.log("list_tables result:", JSON.stringify(plainRows));
+                return {
+                    content: [{ type: "text", text: JSON.stringify(plainRows) }],
+                };
+            } catch (error: any) {
+                console.error("Error in list_tables:", error);
+                return {
+                    isError: true,
+                    content: [{ type: "text", text: `Error listing tables: ${error.message}` }],
+                };
+            }
         }
 
         if (request.params.name === "describe_table") {
+            console.log("[describe_table] args:", request.params.arguments);
             const tableName = request.params.arguments?.table_name;
 
             if (typeof tableName !== 'string' || !tableName) {
@@ -140,8 +160,16 @@ app.get("/sse", async (req, res) => {
             try {
                 const db = getDb();
                 const [rows] = await db.query(`DESCRIBE ${tableName}`);
+                // convert mysql RowDataPacket → plain objects
+                const rowsArray = rows as any[];
+                console.log("[describe_table] rows type:", rowsArray[0]?.constructor?.name);
+                console.log("[describe_table] row count:", (rows as any[])?.length);
+
+                const plainRows = (rows as any[]).map(row => ({ ...row }));
+                console.log("[describe_table] sending plain rows");
+
                 return {
-                    content: [{ type: "text", text: JSON.stringify(rows) }],
+                    content: [{ type: "text", text: JSON.stringify(plainRows) }],
                 };
             } catch (error: any) {
                 return {
@@ -161,8 +189,9 @@ app.get("/sse", async (req, res) => {
             const db = getDb();
             // No params used
             const [rows] = await db.query(query);
+            const plainRows = (rows as any[]).map(row => ({ ...row }));
             return {
-                content: [{ type: "text", text: JSON.stringify(rows) }],
+                content: [{ type: "text", text: JSON.stringify(plainRows) }],
             };
         }
 
@@ -181,8 +210,13 @@ app.get("/sse", async (req, res) => {
 
             const db = getDb();
             const [result] = await db.query(query);
+            // Result for updates might not be an array of rows, but OkPacket. 
+            // However, mysql2 query returns [rows, fields]. 
+            // For INSERT/UPDATE, 'rows' is an object (ResultSetHeader/OkPacket).
+            // It's safer to spread it too if it's an object.
+            const plainResult = JSON.parse(JSON.stringify(result)); // Simplest way to strip proto for non-array result
             return {
-                content: [{ type: "text", text: JSON.stringify(result) }],
+                content: [{ type: "text", text: JSON.stringify(plainResult) }],
             };
         }
 
