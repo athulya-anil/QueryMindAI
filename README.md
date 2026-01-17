@@ -4,20 +4,41 @@ A natural language interface for database queries powered by MCP (Model Context 
 
 ## Overview
 
-QueryMind AI lets you interact with your MySQL database using plain English. Ask questions like "Show me all tables" or "Find users created last week" and get formatted results instantly.
+QueryMind AI lets you interact with your SQL database using plain English. Ask questions like "Show me all tables" or "Find users created last week" and get formatted results instantly.
 
 ## Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   React Client  │────▶│   MCP Server    │────▶│  MySQL Database │
-│   + Groq LLM    │ SSE │   (Express)     │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌────────┐         ┌──────────────┐         ┌─────────────┐
+│  User  │────────▶│ React Client │────────▶│  Groq LLM   │
+└────────┘  Query  └──────┬───────┘  Query  └──────┬──────┘
+                          │                        │
+                          │   Tool Calls           │
+                          │◀───────────────────────┘
+                          │
+                          │ Execute Tools
+                          ▼
+                   ┌─────────────┐
+                   │  MCP Server │
+                   └──────┬──────┘
+                          │
+                          │ SQL Query
+                          ▼
+                   ┌─────────────┐
+                   │  Database   │
+                   └──────┬──────┘
+                          │
+                          │ Results
+                          ▼
+┌────────┐         ┌──────────────┐         ┌─────────────┐
+│  User  │◀────────│ React Client │────────▶│  Groq LLM   │
+└────────┘Response └──────────────┘ Format  └─────────────┘
 ```
 
-- **Client**: React + Vite frontend with Groq LLM (Llama 3.3 70B) for natural language processing
-- **Server**: Express-based MCP server exposing database tools via SSE transport
-- **Database**: MySQL connection with query execution capabilities
+- **Client**: React + Vite frontend that orchestrates the entire flow
+- **LLM**: Groq API (Llama 3.3 70B) for natural language understanding and response formatting
+- **Server**: MCP server exposing database tools via SSE transport
+- **Database**: SQL database (MySQL, PostgreSQL, etc.)
 
 ## Features
 
@@ -48,39 +69,38 @@ cd QueryMindAI
 ```bash
 cd mcp-server
 npm install
+npm run build
+npm start
 ```
 
-Create `.env` file:
+### 3. Connect Your Database
+
+Create a `.env` file in `mcp-server/`:
 ```env
-DB_HOST=localhost
-DB_USER=your_username
-DB_PASSWORD=your_password
-DB_NAME=your_database
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=your_username
+MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=your_database
+MYSQL_CONN_LIMIT=10
 ```
 
-Start the server:
-```bash
-npm run dev
-```
+Replace the values with your database credentials.
 
-### 3. Setup the Client
+### 4. Setup the Client
 
 ```bash
 cd mcp-client
 npm install
+npm run dev
 ```
 
-Create `.env` file:
+Create a `.env` file in `mcp-client/`:
 ```env
 VITE_GROQ_API_KEY=your_groq_api_key
 ```
 
-Start the client:
-```bash
-npm run dev
-```
-
-### 4. Open in Browser
+### 5. Open in Browser
 
 Navigate to `http://localhost:5173` and start querying!
 
