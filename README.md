@@ -122,8 +122,4 @@ Navigate to `http://localhost:5173` and start querying!
 
 ## License
 
-MIT
-
-## Author
-
-Athulya Anil
+MIT © 2025 Athulya Anil
