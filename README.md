@@ -1,19 +1,28 @@
 # QueryMind AI v2.0
 
-A natural language interface for database queries powered by MCP (Model Context Protocol) and LLM.
+An **agentic AI system** for natural language database interactions, built on the Model Context Protocol (MCP).
 
 ## Overview
 
-QueryMind AI lets you interact with your SQL database using plain English. Ask questions like "Show me all tables" or "Find users created last week" and get formatted results instantly.
+QueryMind AI is an autonomous AI agent that translates natural language into database operations. Unlike traditional chatbots, this agentic system **reasons, plans, and executes** multi-step database tasks independently—deciding which tools to invoke, interpreting results, and iterating until the user's intent is fulfilled.
+
+Ask questions like "Show me all tables" or "Find users created last week" and watch the agent autonomously query your database and return formatted results.
+
+## Agentic Capabilities
+
+- **Autonomous Decision-Making**: The AI agent analyzes user intent and selects appropriate database tools without explicit instructions
+- **Tool Orchestration**: Dynamically chains MCP tools (list tables → describe schema → execute query) based on context
+- **Self-Correcting**: Interprets tool outputs and adjusts strategy when needed
+- **Context-Aware**: Maintains conversation context to handle follow-up queries intelligently
 
 ## Architecture
 
 ```
 ┌────────┐         ┌──────────────┐         ┌─────────────┐
-│  User  │────────▶│ React Client │────────▶│  Groq LLM   │
-└────────┘  Query  └──────┬───────┘  Query  └──────┬──────┘
+│  User  │────────▶│ React Client │────────▶│  AI Agent   │
+└────────┘  Query  └──────┬───────┘  Intent └──────┬──────┘
                           │                        │
-                          │   Tool Calls           │
+                          │   Tool Calls           │ Reasoning
                           │◀───────────────────────┘
                           │
                           │ Execute Tools
@@ -31,13 +40,13 @@ QueryMind AI lets you interact with your SQL database using plain English. Ask q
                           │ Results
                           ▼
 ┌────────┐         ┌──────────────┐         ┌─────────────┐
-│  User  │◀────────│ React Client │────────▶│  Groq LLM   │
+│  User  │◀────────│ React Client │────────▶│  AI Agent   │
 └────────┘Response └──────────────┘ Format  └─────────────┘
 ```
 
-- **Client**: React + Vite frontend that orchestrates the entire flow
-- **LLM**: Groq API (Llama 3.3 70B) for natural language understanding and response formatting
-- **Server**: MCP server exposing database tools via SSE transport
+- **Client**: React + Vite frontend that orchestrates the agentic loop
+- **AI Agent**: Groq-powered Llama 3.3 70B for reasoning, tool selection, and response synthesis
+- **MCP Server**: Exposes database tools via SSE transport following the Model Context Protocol
 - **Database**: SQL database (MySQL, PostgreSQL, etc.)
 
 ## Features
@@ -118,7 +127,7 @@ Navigate to `http://localhost:5173` and start querying!
 - **Frontend**: React 19, Vite, TypeScript, react-markdown
 - **Backend**: Express 5, TypeScript, mysql2
 - **Protocol**: Model Context Protocol (MCP) with SSE transport
-- **LLM**: Groq API (Llama 3.3 70B Versatile)
+- **AI Engine**: Groq API with Llama 3.3 70B Versatile
 
 ## License
 
